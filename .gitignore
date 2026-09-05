@@ -1,0 +1,11 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+
+# Node (para cuando arranque el Frontend)
+node_modules/
+dist/
+.env
+.idea/

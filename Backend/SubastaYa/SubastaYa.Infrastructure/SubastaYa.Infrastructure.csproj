@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Infrastructure es una libreria de clases (Microsoft.NET.Sdk), no un proyecto Web,
+         asi que no trae ASP.NET Core incluido por defecto. Esta FrameworkReference le da
+         acceso a SignalR (Hub, IHubContext) a AuctionHub/AuctionNotifier (RealTime/), sin
+         necesitar los paquetes NuGet viejos (Microsoft.AspNetCore.SignalR 1.1.0 es una
+         version de compatibilidad/legacy que no incluye esos tipos para .NET 8).
+         Nota: el ExceptionHandlingMiddleware ya NO vive aca (se movio a SubastaYa.Api,
+         que al ser Sdk="Microsoft.NET.Sdk.Web" no necesita este FrameworkReference para
+         HttpContext/RequestDelegate); este FrameworkReference ahora es exclusivamente
+         por SignalR. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.30" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.30">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- Sin este paquete, Add-Migration/Update-Database en la Consola del Administrador
+         de Paquetes de Visual Studio no existen como cmdlets (Design solo cubre dotnet-ef
+         por linea de comandos, no los cmdlets de PowerShell de la PMC). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.30">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.6.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.6.2" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SubastaYa.Application\SubastaYa.Application.csproj" />
+  </ItemGroup>
+</Project>
