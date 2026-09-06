@@ -1,11 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using SubastaYa.Application;
+using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Infrastructure.Persistence;
-
+using SubastaYa.Infrastructure.Repositories;
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssemblyContaining<AssemblyReference>());
+
+
 
 //Configuracion de la base de datos.
 builder.Services.AddDbContext<SubastaYaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
