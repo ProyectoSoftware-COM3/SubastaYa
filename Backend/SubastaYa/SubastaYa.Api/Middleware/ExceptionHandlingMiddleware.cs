@@ -41,15 +41,19 @@ namespace SubastaYa.Api.Middleware
 
         private static (HttpStatusCode StatusCode, string Message) Map(Exception ex) => ex switch
         {
-            
+
             ConcurrencyConflictException => (HttpStatusCode.Conflict, ex.Message),
+            InvalidCredentialsException => (HttpStatusCode.Unauthorized, ex.Message),
             EmailAlreadyRegisteredException => (HttpStatusCode.Conflict, ex.Message),
 
-            
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
             AppException => (HttpStatusCode.BadRequest, ex.Message),
-            _ => (HttpStatusCode.InternalServerError, "Ocurrio un error inesperado.")
+            _ => (HttpStatusCode.InternalServerError, "Ocurrio un error inesperado."),
+
+            
         };
+
+
     }
 }
