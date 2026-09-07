@@ -36,5 +36,12 @@ namespace SubastaYa.Infrastructure.Repositories
 
             return (items, totalCount);
         }
+
+        public Task<Auction?> GetByIdWithBidsAsync(Guid id, CancellationToken ct = default)
+            => _context.Auctions
+                .Include(a => a.Category)
+                .Include(a => a.Bids).ThenInclude(b => b.Bidder)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == id, ct);
     }
 }
