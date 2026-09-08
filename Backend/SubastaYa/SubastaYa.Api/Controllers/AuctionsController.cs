@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.Common.Interfaces;
+using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionBids;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionById;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctions;
 using SubastaYa.Domain.Enums;
@@ -41,6 +42,10 @@ namespace SubastaYa.Api.Controllers
             var currentUserId = _currentUser.IsAuthenticated ? _currentUser.UserId : (Guid?)null;
             return Ok(await _mediator.Send(new GetAuctionByIdQuery(id, currentUserId), ct));
         }
+
+        [HttpGet("{id:guid}/bids")]
+        public async Task<IActionResult> GetBids(Guid id, CancellationToken ct)
+           => Ok(await _mediator.Send(new GetAuctionBidsQuery(id), ct));
 
 
     }
