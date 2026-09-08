@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.UseCase.Queries.Wallet.GetWalletBalance;
 using SubastaYa.Application.UseCase.Queries.Wallet.GetWalletMovements;
+using SubastaYa.Application.UseCase.Commands.Wallet.DepositFunds;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -28,5 +29,9 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("movements")]
         public async Task<IActionResult> GetMovements(CancellationToken ct)
     => Ok(await _mediator.Send(new GetWalletMovementsQuery(_currentUser.UserId), ct));
+
+        [HttpPost("deposit")]
+        public async Task<IActionResult> Deposit([FromBody] decimal amount, CancellationToken ct)
+    => Ok(await _mediator.Send(new DepositFundsCommand(_currentUser.UserId, amount), ct));
     }
 }

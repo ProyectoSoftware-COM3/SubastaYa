@@ -11,5 +11,7 @@ namespace SubastaYa.Application.Common.Interfaces
     {
         Task<Wallet?> GetByUserIdAsync(Guid userId, CancellationToken ct = default);
         Task<List<LedgerTransaction>> GetMovementsAsync(Guid walletId, CancellationToken ct = default);
+
+        Task AddMovementAsync(LedgerTransaction movement, CancellationToken ct = default);
     }
 }

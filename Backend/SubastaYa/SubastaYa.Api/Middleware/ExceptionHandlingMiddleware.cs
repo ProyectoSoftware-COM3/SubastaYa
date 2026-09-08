@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SubastaYa.Domain.Exceptions;
 using SubastaYa.Application.Exceptions;
+using FluentValidation;
 
 namespace SubastaYa.Api.Middleware
 {
@@ -18,11 +19,28 @@ namespace SubastaYa.Api.Middleware
             _logger = logger;
         }
 
+        //ticket-12-deposit-funds DATOS DE SALIDA DEL VALIDADOR (BODY)
         public async Task InvokeAsync(HttpContext context)
+
         {
             try
             {
                 await _next(context);
+            }
+           
+            catch (ValidationException validationEx)
+            {
+                _logger.LogWarning(validationEx, "400 en {Path}: validacion fallida", context.Request.Path);
+
+                var errors = validationEx.Errors.Select(e => new
+                {
+                    field = e.PropertyName,
+                    message = e.ErrorMessage
+                });
+
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new { errors }));
             }
             catch (Exception ex)
             {
@@ -48,12 +66,15 @@ namespace SubastaYa.Api.Middleware
             AuctionNotFoundException => (HttpStatusCode.NotFound, ex.Message),
             CategoryNotFoundException => (HttpStatusCode.NotFound, ex.Message),
             WalletNotFoundException => (HttpStatusCode.InternalServerError, ex.Message),
+            
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
             AppException => (HttpStatusCode.BadRequest, ex.Message),
             _ => (HttpStatusCode.InternalServerError, "Ocurrio un error inesperado."),
 
             
+
+
         };
 
 
