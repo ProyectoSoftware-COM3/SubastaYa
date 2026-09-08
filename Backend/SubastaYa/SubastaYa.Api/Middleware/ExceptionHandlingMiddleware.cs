@@ -47,6 +47,7 @@ namespace SubastaYa.Api.Middleware
             EmailAlreadyRegisteredException => (HttpStatusCode.Conflict, ex.Message),
             AuctionNotFoundException => (HttpStatusCode.NotFound, ex.Message),
             CategoryNotFoundException => (HttpStatusCode.NotFound, ex.Message),
+            WalletNotFoundException => (HttpStatusCode.InternalServerError, ex.Message),
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
             AppException => (HttpStatusCode.BadRequest, ex.Message),

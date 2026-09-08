@@ -36,6 +36,8 @@ builder.Services.AddScoped<IAuctionRepository, AuctionRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+
 // [Auth/JWT]
 var jwtSection = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
