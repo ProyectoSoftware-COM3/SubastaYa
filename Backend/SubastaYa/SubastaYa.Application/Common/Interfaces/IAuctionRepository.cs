@@ -13,5 +13,7 @@ namespace SubastaYa.Application.Common.Interfaces
         Task<(List<Auction> Items, int TotalCount)> GetFilteredAsync(AuctionFilter filter, CancellationToken ct = default);
 
         Task<Auction?> GetByIdWithBidsAsync(Guid id, CancellationToken ct = default);
+
+        Task AddAsync(Auction auction, CancellationToken ct = default);
     }
 }

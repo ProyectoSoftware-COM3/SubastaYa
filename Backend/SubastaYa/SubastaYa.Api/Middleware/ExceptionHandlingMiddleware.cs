@@ -46,7 +46,7 @@ namespace SubastaYa.Api.Middleware
             InvalidCredentialsException => (HttpStatusCode.Unauthorized, ex.Message),
             EmailAlreadyRegisteredException => (HttpStatusCode.Conflict, ex.Message),
             AuctionNotFoundException => (HttpStatusCode.NotFound, ex.Message),
-
+            CategoryNotFoundException => (HttpStatusCode.NotFound, ex.Message),
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
             AppException => (HttpStatusCode.BadRequest, ex.Message),
