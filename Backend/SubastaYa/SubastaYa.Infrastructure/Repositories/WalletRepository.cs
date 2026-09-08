@@ -22,5 +22,8 @@ namespace SubastaYa.Infrastructure.Repositories
             => _context.LedgerTransactions
             .Where(m => m.WalletId == walletId)
             .ToListAsync(ct);
+
+        public async Task AddMovementAsync(LedgerTransaction movement, CancellationToken ct = default)
+            => await _context.LedgerTransactions.AddAsync(movement, ct);
     }
 }

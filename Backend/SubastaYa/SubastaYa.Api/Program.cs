@@ -38,6 +38,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
 // [Auth/JWT]
 var jwtSection = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
