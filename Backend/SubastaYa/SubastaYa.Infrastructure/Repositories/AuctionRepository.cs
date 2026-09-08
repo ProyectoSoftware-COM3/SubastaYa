@@ -43,5 +43,8 @@ namespace SubastaYa.Infrastructure.Repositories
                 .Include(a => a.Bids).ThenInclude(b => b.Bidder)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id, ct);
+
+        public async Task AddAsync(Auction auction, CancellationToken ct = default)
+        => await _context.Auctions.AddAsync(auction, ct);
     }
 }
