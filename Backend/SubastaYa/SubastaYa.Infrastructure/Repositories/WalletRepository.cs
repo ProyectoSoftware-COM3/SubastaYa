@@ -17,5 +17,10 @@ namespace SubastaYa.Infrastructure.Repositories
 
         public Task<Wallet?> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
             => _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId, ct);
+
+        public Task<List<LedgerTransaction>> GetMovementsAsync(Guid walletId, CancellationToken ct = default)
+            => _context.LedgerTransactions
+            .Where(m => m.WalletId == walletId)
+            .ToListAsync(ct);
     }
 }

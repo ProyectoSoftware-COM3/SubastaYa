@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Application.UseCase.Queries.Wallet.GetWalletBalance;
+using SubastaYa.Application.UseCase.Queries.Wallet.GetWalletMovements;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -23,5 +24,9 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance(CancellationToken ct)
             => Ok(await _mediator.Send(new GetWalletBalanceQuery(_currentUser.UserId), ct));
+
+        [HttpGet("movements")]
+        public async Task<IActionResult> GetMovements(CancellationToken ct)
+    => Ok(await _mediator.Send(new GetWalletMovementsQuery(_currentUser.UserId), ct));
     }
 }
