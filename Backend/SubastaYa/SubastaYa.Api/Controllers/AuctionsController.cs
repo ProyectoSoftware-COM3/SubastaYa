@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.Common.Interfaces;
+using SubastaYa.Application.UseCase.Commands.Auctions.CreateAuction;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionById;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctions;
 using SubastaYa.Domain.Enums;
@@ -34,6 +36,15 @@ namespace SubastaYa.Api.Controllers
             var query = new GetAuctionsQuery(status, categoryId, minPrice, maxPrice, sort, page, pageSize);
             return Ok(await _mediator.Send(query, ct));
         }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Create([FromBody] CreateAuctionCommand command, CancellationToken ct)
+        {
+            var auctionId = await _mediator.Send(command with { SellerId = _currentUser.UserId }, ct);
+            return CreatedAtAction(nameof(GetById), new { id = auctionId }, new { id = auctionId });
+        }
+
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
