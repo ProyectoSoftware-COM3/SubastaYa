@@ -6,3 +6,4 @@ desarrollo, organizadas por el ticket que lo requiera.
 - [TICKET-02: Decisiones sobre el Seed](./02-decisiones-seed.md)
 - [TICKET-04: Middleware y UnitOfWork](./04-decisiones-register.md)
 - [TICKET-07: Por que ICurrentUserService nace aca](./07-decisiones-currentuser.md)
+- [TICKET-12: Decisiones sobre AuditLog, transaccion y LedgerTransaction](./12-decisiones-deposit-auditlog.md)
