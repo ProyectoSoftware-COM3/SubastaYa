@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.Common.Interfaces;
+using SubastaYa.Application.UseCase.Queries.MyActivity.GetMyAuctions;
 using SubastaYa.Application.UseCase.Queries.MyActivity.GetMyBids;
 
 namespace SubastaYa.Api.Controllers
@@ -23,5 +24,9 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("bids")]
         public async Task<IActionResult> GetMyBids(CancellationToken ct)
             => Ok(await _mediator.Send(new GetMyBidsQuery(_currentUser.UserId), ct));
+
+        [HttpGet("auctions")]
+        public async Task<IActionResult> GetMyAuctions(CancellationToken ct)
+        => Ok(await _mediator.Send(new GetMyAuctionsQuery(_currentUser.UserId), ct));
     }
 }

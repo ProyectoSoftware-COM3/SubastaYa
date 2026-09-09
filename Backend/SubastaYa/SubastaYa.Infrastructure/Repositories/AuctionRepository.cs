@@ -46,5 +46,9 @@ namespace SubastaYa.Infrastructure.Repositories
 
         public async Task AddAsync(Auction auction, CancellationToken ct = default)
         => await _context.Auctions.AddAsync(auction, ct);
+
+        public Task<List<Auction>> GetBySellerIdAsync(Guid sellerId, CancellationToken ct = default)
+            => _context.Auctions.Include(a => a.Bids).AsNoTracking()
+            .Where(a => a.SellerId == sellerId).ToListAsync(ct);
     }
 }
