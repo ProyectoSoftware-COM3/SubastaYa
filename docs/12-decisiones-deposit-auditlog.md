@@ -1,12 +1,12 @@
 # TICKET-12: Decisiones sobre AuditLog, transaccion y LedgerTransaction
 
 ## Por que AuditLogRepository tiene su propio SaveChanges
-El AuditLog tiene que sobrevivir aunque la operacion de negocio falle: registrar
-que "se intento acreditar saldo" es informacion util incluso si el deposito se
-revierte por algun error. Si el AuditLog compartiera la misma transaccion que
-el deposito (via IUnitOfWork), un Rollback borraria tambien el registro de
-auditoria -- perdiendo justo el rastro que 3.4 del TP exige mantener. Por eso
-se escribe DESPUES del Commit, con su propio SaveChanges independiente.
+El AuditLog usa un SaveChanges independiente, separado del IUnitOfWork de la
+transaccion principal. Esto es lo que permite, en general, que la escritura
+del audit log no dependa del resultado de la operacion de negocio -- en este
+Handler puntual (DepositFundsCommandHandler), el AuditLog se escribe una vez
+que el deposito ya se confirmo (despues del Commit), registrando la
+acreditacion exitosa tal como exige 3.4 del TP.
 
 ## Por que el deposito usa una transaccion explicita
 Actualizar el saldo de la Wallet y crear el LedgerTransaction del movimiento
