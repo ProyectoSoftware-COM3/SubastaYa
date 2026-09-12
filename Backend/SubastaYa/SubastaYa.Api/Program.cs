@@ -11,6 +11,7 @@ using SubastaYa.Infrastructure.Persistence;
 using SubastaYa.Infrastructure.RealTime;
 using SubastaYa.Infrastructure.Repositories;
 using SubastaYa.Infrastructure.Security;
+using SubastaYa.Infrastructure.BackgroundJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,8 @@ builder.Services.AddScoped<IBidRepository, BidRepository>();
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IAuctionNotifier, AuctionNotifier>();
+
+builder.Services.AddHostedService<AuctionClosingWorker>();
 
 // [Auth/JWT]
 var jwtSection = builder.Configuration.GetSection("Jwt");
