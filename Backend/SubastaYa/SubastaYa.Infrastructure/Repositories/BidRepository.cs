@@ -16,5 +16,14 @@ namespace SubastaYa.Infrastructure.Repositories
                 .AsNoTrackingWithIdentityResolution()
                 .Where(b => b.BidderId == bidderId)
                 .ToListAsync(ct);
+
+        public async Task AddAsync(Bid bid, CancellationToken ct = default)
+            => await _context.Bids.AddAsync(bid, ct);
+
+        public Task<Bid?> GetHighestBidAsync(Guid auctionId, CancellationToken ct = default)
+            => _context.Bids
+                .Where(b => b.AuctionId == auctionId)
+                .OrderByDescending(b => b.Amount)
+                .FirstOrDefaultAsync(ct);
     }
 }

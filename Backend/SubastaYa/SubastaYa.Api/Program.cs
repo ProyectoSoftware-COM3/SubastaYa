@@ -8,6 +8,7 @@ using SubastaYa.Application;
 using SubastaYa.Application.Common.Behaviors;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Infrastructure.Persistence;
+using SubastaYa.Infrastructure.RealTime;
 using SubastaYa.Infrastructure.Repositories;
 using SubastaYa.Infrastructure.Security;
 
@@ -41,6 +42,9 @@ builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
 builder.Services.AddScoped<IBidRepository, BidRepository>();
+
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IAuctionNotifier, AuctionNotifier>();
 
 // [Auth/JWT]
 var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -111,6 +115,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auctions");
 
 //Para usar el DbSeeder, se crea un scope para obtener el contexto de la base de datos y luego se llama al método SeedAsync.
 using (var scope = app.Services.CreateScope())

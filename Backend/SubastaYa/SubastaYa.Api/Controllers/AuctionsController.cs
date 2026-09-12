@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubastaYa.Application.Common.Interfaces;
-using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionBids;
 using SubastaYa.Application.UseCase.Commands.Auctions.CreateAuction;
+using SubastaYa.Application.UseCase.Commands.Bids.PlaceBid;
+using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionBids;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionById;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctions;
 using SubastaYa.Domain.Enums;
@@ -58,6 +59,13 @@ namespace SubastaYa.Api.Controllers
         public async Task<IActionResult> GetBids(Guid id, CancellationToken ct)
            => Ok(await _mediator.Send(new GetAuctionBidsQuery(id), ct));
 
+        [HttpPost("{id:guid}/bids")]
+        [Authorize]
+        public async Task<IActionResult> PlaceBid(Guid id, [FromBody] decimal amount, CancellationToken ct)
+        {
+            var command = new PlaceBidCommand(id, _currentUser.UserId, amount);
+            return Ok(await _mediator.Send(command, ct));
+        }
 
     }
 }

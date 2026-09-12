@@ -8,6 +8,6 @@ namespace SubastaYa.Application.Exceptions
     public class WalletNotFoundException : AppException
     {
         public WalletNotFoundException(Guid userId)
-            : base($"No se encontro la billetera del usuario {userId}.") { }
+            : base($"No se encontro la billetera para el usuario {userId}.") { }
     }
 }

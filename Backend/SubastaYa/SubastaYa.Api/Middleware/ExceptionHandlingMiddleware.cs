@@ -66,7 +66,10 @@ namespace SubastaYa.Api.Middleware
             AuctionNotFoundException => (HttpStatusCode.NotFound, ex.Message),
             CategoryNotFoundException => (HttpStatusCode.NotFound, ex.Message),
             WalletNotFoundException => (HttpStatusCode.InternalServerError, ex.Message),
-            
+            AuctionNotActiveException => (HttpStatusCode.BadRequest, ex.Message),
+            InvalidBidException => (HttpStatusCode.BadRequest, ex.Message),
+            InsufficientBalanceException => (HttpStatusCode.UnprocessableEntity, ex.Message),
+
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
             AppException => (HttpStatusCode.BadRequest, ex.Message),
