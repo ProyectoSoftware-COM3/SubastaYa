@@ -17,5 +17,10 @@ namespace SubastaYa.Application.Common.Interfaces
         Task AddAsync(Auction auction, CancellationToken ct = default);
 
         Task<List<Auction>> GetBySellerIdAsync(Guid sellerId, CancellationToken ct = default);
+
+        Task<Auction?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<List<Auction>> GetExpiredActiveAsync(CancellationToken ct = default);
+
+
     }
 }

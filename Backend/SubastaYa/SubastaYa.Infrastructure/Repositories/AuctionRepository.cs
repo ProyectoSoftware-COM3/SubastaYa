@@ -50,5 +50,14 @@ namespace SubastaYa.Infrastructure.Repositories
         public Task<List<Auction>> GetBySellerIdAsync(Guid sellerId, CancellationToken ct = default)
             => _context.Auctions.Include(a => a.Bids).AsNoTracking()
             .Where(a => a.SellerId == sellerId).ToListAsync(ct);
+
+        public Task<Auction?> GetByIdAsync(Guid id, CancellationToken ct = default)
+            => _context.Auctions.FirstOrDefaultAsync(a => a.Id == id, ct);
+
+        public Task<List<Auction>> GetExpiredActiveAsync(CancellationToken ct = default)
+            => _context.Auctions
+                .Include(a => a.Bids)
+                .Where(a => a.Status == AuctionStatus.Active && a.EndDate <= DateTime.UtcNow)
+                .ToListAsync(ct);
     }
 }
