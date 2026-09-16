@@ -46,6 +46,7 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
                 var now = DateTime.UtcNow;
 
                 ValidateAuctionIsActive(auction, now);
+                ValidateBidderIsNotSeller(auction, request.BidderId);
 
                 var previousHighestBid = await _bidRepository.GetHighestBidAsync(request.AuctionId, cancellationToken);
                 ValidateBidAmount(auction, previousHighestBid, request.Amount);
@@ -91,6 +92,11 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
         {
             if (auction.Status != AuctionStatus.Active || now < auction.StartDate || now > auction.EndDate)
                 throw new AuctionNotActiveException(auction.Id);
+        }
+        private static void ValidateBidderIsNotSeller(Auction auction, Guid bidderId)
+        {
+            if (auction.SellerId == bidderId)
+                throw new InvalidBidException("No podes ofertar en tu propia subasta.");
         }
 
         private static void ValidateBidAmount(Auction auction, Bid? previousHighestBid, decimal amount)
