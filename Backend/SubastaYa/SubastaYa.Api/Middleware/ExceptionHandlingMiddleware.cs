@@ -1,10 +1,12 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using SubastaYa.Domain.Exceptions;
-using SubastaYa.Application.Exceptions;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SubastaYa.Application.Exceptions;
+using SubastaYa.Domain.Exceptions;
+
 
 namespace SubastaYa.Api.Middleware
 {
@@ -61,6 +63,9 @@ namespace SubastaYa.Api.Middleware
         {
 
             ConcurrencyConflictException => (HttpStatusCode.Conflict, ex.Message),
+            DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "Otro usuario modifico el recurso al mismo tiempo. Volve a intentar."),
+
+
             InvalidCredentialsException => (HttpStatusCode.Unauthorized, ex.Message),
             EmailAlreadyRegisteredException => (HttpStatusCode.Conflict, ex.Message),
             AuctionNotFoundException => (HttpStatusCode.NotFound, ex.Message),
