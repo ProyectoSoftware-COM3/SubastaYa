@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Application.Common.Interfaces;
 using SubastaYa.Domain.Entities;
 using SubastaYa.Infrastructure.Persistence;
@@ -18,7 +19,15 @@ namespace SubastaYa.Infrastructure.Repositories
                 .ToListAsync(ct);
 
         public async Task AddAsync(Bid bid, CancellationToken ct = default)
-            => await _context.Bids.AddAsync(bid, ct);
+           
+         {
+            await _context.Bids.AddAsync(bid, ct);
+
+      
+        var auction = _context.Auctions.Local.FirstOrDefault(a => a.Id == bid.AuctionId);
+            if (auction is not null)
+                _context.Entry(auction).Property(a => a.EndDate).IsModified = true;
+        }
 
         public Task<Bid?> GetHighestBidAsync(Guid auctionId, CancellationToken ct = default)
             => _context.Bids

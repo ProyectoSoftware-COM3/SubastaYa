@@ -48,11 +48,8 @@ namespace SubastaYa.Application.UseCase.Commands.Wallet.DepositFunds
                     OccurredAt = DateTime.UtcNow
                 }, cancellationToken);
 
-                
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                await _unitOfWork.CommitAsync(cancellationToken);
-
+                // La auditoria de una operacion exitosa va dentro de la transaccion (3.1 del TP):
+                // si falla el registro, el rollback deshace tambien la acreditacion.
                 await _auditLogRepository.AddAsync(new AuditLog
                 {
                     Id = Guid.NewGuid(),
@@ -63,6 +60,12 @@ namespace SubastaYa.Application.UseCase.Commands.Wallet.DepositFunds
                     DetailsJson = $"{{\"monto\":{request.Amount}}}",
                     OccurredAt = DateTime.UtcNow
                 }, cancellationToken);
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+
+              
 
                 return new WalletBalanceDto(wallet.TotalBalance, wallet.HeldBalance, wallet.AvailableBalance);
             }

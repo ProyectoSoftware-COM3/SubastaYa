@@ -37,6 +37,7 @@ namespace SubastaYa.Infrastructure.Persistence
 
         public async Task RollbackAsync(CancellationToken ct = default)
         {
+            _context.ChangeTracker.Clear();
             if (_transaction is null) return;
             await _transaction.RollbackAsync(ct);
             await _transaction.DisposeAsync();
