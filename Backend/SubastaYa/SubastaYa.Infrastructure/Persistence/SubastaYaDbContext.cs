@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Domain.Entities;
+using SubastaYa.Infrastructure.Persistence.Converters;
 
 namespace SubastaYa.Infrastructure.Persistence
 {
@@ -20,6 +21,10 @@ namespace SubastaYa.Infrastructure.Persistence
             
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(SubastaYaDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
+        }
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
         }
     }
 }

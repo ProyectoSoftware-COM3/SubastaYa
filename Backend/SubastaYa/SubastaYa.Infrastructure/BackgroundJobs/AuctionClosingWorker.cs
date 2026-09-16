@@ -7,6 +7,7 @@ using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Application.Exceptions;
 using SubastaYa.Infrastructure.Persistence;
+using SubastaYa.Application.Common.Filters;
 
 namespace SubastaYa.Infrastructure.BackgroundJobs
 {
@@ -15,6 +16,7 @@ namespace SubastaYa.Infrastructure.BackgroundJobs
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(15);
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<AuctionClosingWorker> _logger;
+        private const int ScheduledPageSize = 100;
 
         public AuctionClosingWorker(IServiceScopeFactory scopeFactory, ILogger<AuctionClosingWorker> logger)
         {
@@ -26,6 +28,16 @@ namespace SubastaYa.Infrastructure.BackgroundJobs
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                
+                try
+                {
+                    await ActivateDueScheduledAuctionsAsync(stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error activando subastas programadas");
+                }
+                
                 try
                 {
                     await CloseExpiredAuctionsAsync(stoppingToken);
@@ -39,31 +51,45 @@ namespace SubastaYa.Infrastructure.BackgroundJobs
             }
         }
 
+        // Solo se buscan los ids: cada subasta se cierra en su propio scope (DbContext y transaccion nuevos),
+        // asi si el cierre de una falla, sus cambios pendientes no se guardan junto con la siguiente.
         private async Task CloseExpiredAuctionsAsync(CancellationToken ct)
+        {
+            List<Guid> expiredAuctionIds;
+
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
+                var expiredAuctions = await auctionRepository.GetExpiredActiveAsync(ct);
+                expiredAuctionIds = expiredAuctions.Select(a => a.Id).ToList();
+            }
+
+            foreach (var auctionId in expiredAuctionIds)
+            {
+                await CloseOneAuctionAsync(auctionId, ct);
+            }
+        }
+
+        private async Task CloseOneAuctionAsync(Guid auctionId, CancellationToken ct)
         {
             using var scope = _scopeFactory.CreateScope();
             var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
+            var bidRepository = scope.ServiceProvider.GetRequiredService<IBidRepository>();
             var walletRepository = scope.ServiceProvider.GetRequiredService<IWalletRepository>();
             var auditLogRepository = scope.ServiceProvider.GetRequiredService<IAuditLogRepository>();
             var auctionNotifier = scope.ServiceProvider.GetRequiredService<IAuctionNotifier>();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-            var expiredAuctions = await auctionRepository.GetExpiredActiveAsync(ct);
+            var auction = await auctionRepository.GetByIdAsync(auctionId, ct);
 
-            foreach (var auction in expiredAuctions)
-            {
-                await CloseOneAuctionAsync(auction, walletRepository, auditLogRepository, auctionNotifier, unitOfWork, ct);
-            }
-        }
+            // Se vuelve a validar con la subasta recien leida: una puja de ultimo minuto pudo extender el cierre.
+            if (auction is null || auction.Status != AuctionStatus.Active || auction.EndDate > DateTime.UtcNow)
+                return;
 
-        private async Task CloseOneAuctionAsync(
-            Auction auction, IWalletRepository walletRepository, IAuditLogRepository auditLogRepository,
-            IAuctionNotifier auctionNotifier, IUnitOfWork unitOfWork, CancellationToken ct)
-        {
             await unitOfWork.BeginTransactionAsync(ct);
             try
             {
-                var winningBid = GetWinningBid(auction);
+                var winningBid = await bidRepository.GetHighestBidAsync(auction.Id, ct);
 
                 if (winningBid is null)
                     auction.Status = AuctionStatus.Unsold;
@@ -84,12 +110,11 @@ namespace SubastaYa.Infrastructure.BackgroundJobs
             catch (Exception ex)
             {
                 await unitOfWork.RollbackAsync(ct);
-                _logger.LogError(ex, "No se pudo cerrar la subasta {AuctionId}, se reintentara en el proximo ciclo", auction.Id);
+                _logger.LogError(ex, "No se pudo cerrar la subasta {AuctionId}, se reintentara en el proximo ciclo", auctionId);
             }
         }
 
-        private static Bid? GetWinningBid(Auction auction)
-            => auction.Bids.OrderByDescending(b => b.Amount).FirstOrDefault();
+        
 
         private static async Task LiquidateAuctionAsync(Auction auction, Bid winningBid, IWalletRepository walletRepository, CancellationToken ct)
         {
@@ -141,5 +166,93 @@ namespace SubastaYa.Infrastructure.BackgroundJobs
                 OccurredAt = DateTime.UtcNow
             }, ct);
         }
+        
+
+        private async Task ActivateDueScheduledAuctionsAsync(CancellationToken ct)
+        {
+            var dueAuctionIds = await GetDueScheduledAuctionIdsAsync(ct);
+
+            foreach (var auctionId in dueAuctionIds)
+            {
+                await ActivateOneAuctionAsync(auctionId, ct);
+            }
+        }
+
+        
+        private async Task<List<Guid>> GetDueScheduledAuctionIdsAsync(CancellationToken ct)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
+
+            var now = DateTime.UtcNow;
+            var dueIds = new List<Guid>();
+            var page = 1;
+
+            while (true)
+            {
+                var filter = new AuctionFilter(AuctionStatus.Scheduled, null, null, null, AuctionSortOrder.LeastTimeRemaining, page, ScheduledPageSize);
+                var (items, _) = await auctionRepository.GetFilteredAsync(filter, ct);
+
+                dueIds.AddRange(items.Where(a => a.StartDate <= now).Select(a => a.Id));
+
+                if (items.Count < ScheduledPageSize) break;
+                page++;
+            }
+
+            return dueIds;
+        }
+
+       
+        private async Task ActivateOneAuctionAsync(Guid auctionId, CancellationToken ct)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var auctionRepository = scope.ServiceProvider.GetRequiredService<IAuctionRepository>();
+            var auditLogRepository = scope.ServiceProvider.GetRequiredService<IAuditLogRepository>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            var now = DateTime.UtcNow;
+            var auction = await auctionRepository.GetByIdAsync(auctionId, ct);
+
+            
+            if (auction is null || auction.Status != AuctionStatus.Scheduled || auction.StartDate > now)
+                return;
+
+            await unitOfWork.BeginTransactionAsync(ct);
+            try
+            {
+                
+                auction.Status = auction.EndDate <= now ? AuctionStatus.Unsold : AuctionStatus.Active;
+
+                await LogActivationAuditAsync(auction, auditLogRepository, ct);
+
+                await unitOfWork.SaveChangesAsync(ct);
+                await unitOfWork.CommitAsync(ct);
+            }
+            catch (ConcurrencyConflictException)
+            {
+                await unitOfWork.RollbackAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollbackAsync(ct);
+                _logger.LogError(ex, "No se pudo activar la subasta {AuctionId}, se reintentara en el proximo ciclo", auctionId);
+            }
+        }
+
+        private static async Task LogActivationAuditAsync(Auction auction, IAuditLogRepository auditLogRepository, CancellationToken ct)
+        {
+            await auditLogRepository.AddAsync(new AuditLog
+            {
+                Id = Guid.NewGuid(),
+                EntityType = AuditEntityType.Auction,
+                EntityId = auction.Id.ToString(),
+                Action = auction.Status == AuctionStatus.Active ? "ActivacionAutomatica" : "CierreDesierta",
+                UserId = null,
+                DetailsJson = $"{{\"origen\":\"AuctionClosingWorker\",\"estadoAnterior\":\"Scheduled\",\"estadoNuevo\":\"{auction.Status}\"}}",
+                OccurredAt = DateTime.UtcNow
+            }, ct);
+        }
+
+        
     }
 }
