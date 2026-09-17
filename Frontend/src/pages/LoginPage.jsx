@@ -1,66 +1,85 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { loginApi } from '../api/authApi';
+import Spinner from '../components/common/Spinner';
 
-const LoginPage = () => {
+const inputClass = 'w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-[#d4af37] disabled:opacity-60';
+
+function getLoginErrorMessage(error) {
+  if (error.status === 401) return 'Correo o contraseña incorrectos.';
+  return error.message;
+}
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { loginContext } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const data = await loginApi({ email, password });
+      // POST /api/sessions devuelve un AuthDto plano: token, expiresAt, userId, name y email.
+      loginContext({ userId: data.userId, name: data.name, email: data.email }, data.token);
+      navigate('/');
+    } catch (err) {
+      setError(getLoginErrorMessage(err));
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-md p-8 bg-[#0a0a0a] border border-gray-800 rounded-2xl shadow-2xl">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-brand-gold mb-2">Bienvenido de nuevo</h2>
-        <p className="text-gray-400 text-sm">Ingresá a tu cuenta de SubastaYa</p>
-      </div>
-
-      <form className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Correo Electrónico
-          </label>
-          <input
-            type="email"
-            className="w-full px-4 py-3 bg-[#050505] border border-gray-700 rounded-lg focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold text-white transition-colors"
-            placeholder="tu@email.com"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Contraseña
-          </label>
-          <input
-            type="password"
-            className="w-full px-4 py-3 bg-[#050505] border border-gray-700 rounded-lg focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold text-white transition-colors"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <div className="flex items-center justify-end">
-          <a href="#" className="text-sm text-brand-gold hover:text-yellow-300 transition-colors">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
-
-        <button type="submit" className="btn-lor w-full flex items-center justify-between">
-          <span>Iniciar Sesión</span>
-          <svg 
-            width="20" 
-            height="20" 
-            className="text-current shrink-0" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2.5" 
-            viewBox="0 0 24 24"
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4">
+      <div className="w-full max-w-md p-8 border border-[#d4af37] rounded-lg shadow-lg bg-black">
+        <h2 className="text-3xl font-serif font-bold text-[#d4af37] text-center mb-6">Iniciar Sesión</h2>
+        {error && <p className="text-red-400 text-sm mb-4 text-center" role="alert">{error}</p>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label htmlFor="login-email" className="block text-sm text-gray-300 mb-1">Correo electrónico</label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClass}
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="login-password" className="block text-sm text-gray-300 mb-1">Contraseña</label>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputClass}
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full mt-4 py-2 bg-[#d4af37] text-black font-bold rounded hover:bg-[#c49a2e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </button>
-      </form>
-
-      <p className="mt-8 text-center text-sm text-gray-400">
-        ¿No tenés una cuenta?{' '}
-        <Link to="/register" className="text-brand-gold hover:text-yellow-300 font-semibold transition-colors">
-          Registrate acá
-        </Link>
-      </p>
+            {isSubmitting ? <><Spinner label="" size="sm" /> Ingresando...</> : 'Ingresar'}
+          </button>
+        </form>
+        <p className="mt-4 text-center text-sm text-gray-400">
+          ¿No tienes cuenta? <Link to="/register" className="text-[#d4af37] hover:underline">Regístrate aquí</Link>
+        </p>
+      </div>
     </div>
   );
-};
-
-export default LoginPage;
+}
