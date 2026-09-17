@@ -25,7 +25,7 @@ namespace SubastaYa.Application.UseCase.Queries.MyActivity.GetMyAuctions
                 .Select(a =>
                 {
                     var currentPrice = a.Bids.Count > 0 ? a.Bids.Max(b => b.Amount) : a.BasePrice;
-                    var revenue = a.Status == AuctionStatus.Unsold ? 0 : currentPrice;
+                    var revenue = a.Status == AuctionStatus.Finished ? currentPrice : 0;
                     return new MyAuctionDto(a.Id, a.Title, a.Status, revenue, a.Bids.Count);
                 })
                 .ToList();
