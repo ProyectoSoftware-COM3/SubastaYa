@@ -3,12 +3,15 @@ import { useAuth } from './hooks/useAuth';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuctionRoomPage from './pages/AuctionRoomPage';
 import WalletPage from './pages/WalletPage';
+// ===== INICIO TICKET-08: se agrega el import de MyActivitiesPage =====
+import MyActivitiesPage from './pages/MyActivitiesPage';
+// ===== FIN TICKET-08 =====
 import HowItWorksPage from './pages/HowItWorksPage';
 import ActiveAuctionsPage from './pages/ActiveAuctionsPage';
 import UpcomingAuctionsPage from './pages/UpcomingAuctionsPage';
 import CreateAuctionPage from './pages/CreateAuctionPage';
-
  
 function App() {
   const { isAuthenticated } = useAuth();
@@ -32,9 +35,21 @@ function App() {
         />
         
         <Route 
+          path="/auction/:id" 
+          element={isAuthenticated ? <AuctionRoomPage /> : <Navigate to="/login" />} 
+        /> 
+ 
+        <Route 
           path="/wallet" 
           element={isAuthenticated ? <WalletPage /> : <Navigate to="/login" />} 
         />
+ 
+        
+        <Route 
+          path="/activities" 
+          element={isAuthenticated ? <MyActivitiesPage /> : <Navigate to="/login" />} 
+        />
+        
  
         <Route 
           path="/how-it-works" 
@@ -55,7 +70,7 @@ function App() {
           path="/create-auction" 
           element={isAuthenticated ? <CreateAuctionPage /> : <Navigate to="/login" />} 
         />
-
+ 
         {/* Cualquier ruta inexistente vuelve al inicio en lugar de mostrar una pantalla en blanco. */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
