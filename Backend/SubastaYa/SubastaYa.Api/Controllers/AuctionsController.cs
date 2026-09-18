@@ -64,7 +64,7 @@ namespace SubastaYa.Api.Controllers
         public async Task<IActionResult> PlaceBid(Guid id, [FromBody] decimal amount, CancellationToken ct)
         {
             var command = new PlaceBidCommand(id, _currentUser.UserId, amount);
-            return Ok(await _mediator.Send(command, ct));
+            return StatusCode(StatusCodes.Status201Created, await _mediator.Send(command, ct));
         }
 
     }
