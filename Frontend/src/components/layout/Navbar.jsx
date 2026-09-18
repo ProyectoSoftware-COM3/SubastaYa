@@ -34,7 +34,7 @@ export default function Navbar() {
   }, []);
  
   return (
-    <nav className="bg-[#0a0a0a] border-b border-gray-800">
+     <nav className="sticky top-0 z-40 bg-[#0a0a0a] border-b border-gray-800">
       {/*FILA SUPERIOR (Logo y Mi Cuenta / Auth) */}
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-8 py-3 border-b border-gray-900">
         

@@ -40,9 +40,15 @@ export default function AuctionCard({ auction }) {
         </div>
  
         <div className="p-4">
-          {status === AUCTION_STATUS.ACTIVE && (
+                    {status === AUCTION_STATUS.ACTIVE && (
             <div className="mb-3">
               <LiveTimer targetTimestamp={endTimestamp} now={now} />
+            </div>
+          )}
+
+          {status === AUCTION_STATUS.SCHEDULED && (
+            <div className="mb-3">
+              <LiveTimer targetTimestamp={endTimestamp} now={now} label="CIERRA EN" expiredText="FINALIZADO" />
             </div>
           )}
  
