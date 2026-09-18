@@ -18,6 +18,18 @@ export function toTimestamp(value) {
   return parseApiDate(value)?.getTime() ?? null;
 }
  
+
+export function localInputToIso(value) {
+  return new Date(value).toISOString();
+}
+ 
+
+export function toLocalInputValue(date) {
+  const pad = (number) => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+ 
 export function formatRemaining(milliseconds) {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   const days = Math.floor(totalSeconds / 86400);

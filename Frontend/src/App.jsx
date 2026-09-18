@@ -7,6 +7,8 @@ import WalletPage from './pages/WalletPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import ActiveAuctionsPage from './pages/ActiveAuctionsPage';
 import UpcomingAuctionsPage from './pages/UpcomingAuctionsPage';
+import CreateAuctionPage from './pages/CreateAuctionPage';
+
  
 function App() {
   const { isAuthenticated } = useAuth();
@@ -49,6 +51,11 @@ function App() {
           element={isAuthenticated ? <UpcomingAuctionsPage /> : <Navigate to="/login" />} 
         />
  
+        <Route 
+          path="/create-auction" 
+          element={isAuthenticated ? <CreateAuctionPage /> : <Navigate to="/login" />} 
+        />
+
         {/* Cualquier ruta inexistente vuelve al inicio en lugar de mostrar una pantalla en blanco. */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
