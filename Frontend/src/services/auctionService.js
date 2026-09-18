@@ -2,8 +2,7 @@
 import { fetchWithAuth, buildQuery } from './api';
 import { CATALOG_PAGE_SIZE } from '../config';
  
-// Los filtros se resuelven en el backend (GET /api/auctions acepta status, categoryId, minPrice,
-// maxPrice, sort, page y pageSize) para no descargar todo el listado y filtrarlo en el navegador.
+
 export async function getAuctions({ status, categoryId, minPrice, maxPrice, sort, page = 1, pageSize = CATALOG_PAGE_SIZE } = {}) {
   const data = await fetchWithAuth(`/auctions${buildQuery({ status, categoryId, minPrice, maxPrice, sort, page, pageSize })}`);
   return {
@@ -27,6 +26,14 @@ export function createAuction(auctionData) {
   return fetchWithAuth('/auctions', {
     method: 'POST',
     body: JSON.stringify(auctionData),
+  });
+}
+ 
+
+export function placeBid(auctionId, amount) {
+  return fetchWithAuth(`/auctions/${auctionId}/bids`, {
+    method: 'POST',
+    body: JSON.stringify(Number(amount)),
   });
 }
 
