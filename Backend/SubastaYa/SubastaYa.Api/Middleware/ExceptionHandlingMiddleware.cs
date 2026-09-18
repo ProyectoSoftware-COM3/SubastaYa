@@ -21,7 +21,7 @@ namespace SubastaYa.Api.Middleware
             _logger = logger;
         }
 
-        //ticket-12-deposit-funds DATOS DE SALIDA DEL VALIDADOR (BODY)
+       
         public async Task InvokeAsync(HttpContext context)
 
         {

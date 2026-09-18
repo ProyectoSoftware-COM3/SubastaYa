@@ -5,6 +5,7 @@ using SubastaYa.Domain.Entities;
 using SubastaYa.Domain.Enums;
 using SubastaYa.Domain.Exceptions;
 using SubastaYa.Application.Exceptions;
+using SubastaYa.Application.Common;
 
 namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
 {
@@ -18,6 +19,7 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
         private readonly IWalletRepository _walletRepository;
         private readonly IAuditLogRepository _auditLogRepository;
         private readonly IAuctionNotifier _auctionNotifier;
+        private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public PlaceBidCommandHandler(
@@ -26,6 +28,7 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
             IWalletRepository walletRepository,
             IAuditLogRepository auditLogRepository,
             IAuctionNotifier auctionNotifier,
+            IUserRepository userRepository,
             IUnitOfWork unitOfWork)
         {
             _auctionRepository = auctionRepository;
@@ -33,6 +36,7 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
             _walletRepository = walletRepository;
             _auditLogRepository = auditLogRepository;
             _auctionNotifier = auctionNotifier;
+            _userRepository = userRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -49,6 +53,8 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
                 ValidateBidderIsNotSeller(auction, request.BidderId);
 
                 var previousHighestBid = await _bidRepository.GetHighestBidAsync(request.AuctionId, cancellationToken);
+                
+                ValidateBidderIsNotCurrentLeader(previousHighestBid, request.BidderId);
                 ValidateBidAmount(auction, previousHighestBid, request.Amount);
                 ValidateSufficientBalance(bidderWallet, request.BidderId, request.Amount);
 
@@ -66,7 +72,7 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await _unitOfWork.CommitAsync(cancellationToken);
 
-                await NotifyBidPlacedAsync(auction, request.Amount, wasExtended, cancellationToken);
+                await NotifyBidPlacedAsync(auction, request.BidderId, request.Amount, wasExtended, cancellationToken);
 
                 return new BidDto(bid.Id, "vos", bid.Amount, bid.PlacedAt);
             }
@@ -98,6 +104,14 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
             if (auction.SellerId == bidderId)
                 throw new InvalidBidException("No podes ofertar en tu propia subasta.");
         }
+        
+        //Puede volver a ofertar cuando otro usuario lo supere.
+        private static void ValidateBidderIsNotCurrentLeader(Bid? previousHighestBid, Guid bidderId)
+        {
+            if (previousHighestBid is not null && previousHighestBid.BidderId == bidderId)
+                throw new InvalidBidException("Ya sos el postor lider de esta subasta. Espera a que otro usuario te supere.");
+        }
+        
 
         private static void ValidateBidAmount(Auction auction, Bid? previousHighestBid, decimal amount)
         {
@@ -209,9 +223,13 @@ namespace SubastaYa.Application.UseCase.Commands.Bids.PlaceBid
         }
         //Tiempo real (Modulo 3, SignalR)
 
-        private async Task NotifyBidPlacedAsync(Auction auction, decimal amount, bool wasExtended, CancellationToken ct)
+        private async Task NotifyBidPlacedAsync(Auction auction, Guid bidderId, decimal amount, bool wasExtended, CancellationToken ct)
         {
-            await _auctionNotifier.NotifyNewBidAsync(auction.Id, amount, "vos", ct);
+            
+            var bidder = await _userRepository.GetByIdAsync(bidderId, ct);
+            var bidderAlias = bidder is null ? "Anonimo" : BidAnonymizer.Anonymize(bidder.Name);
+
+            await _auctionNotifier.NotifyNewBidAsync(auction.Id, amount, bidderAlias, ct);
             if (wasExtended)
                 await _auctionNotifier.NotifyTimeExtendedAsync(auction.Id, auction.EndDate, ct);
         }

@@ -13,6 +13,9 @@ namespace SubastaYa.Api.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] RegisterUserCommand command, CancellationToken ct)
-            => Ok(await _mediator.Send(command, ct));
+        {
+            var result = await _mediator.Send(command, ct);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
     }
 }
