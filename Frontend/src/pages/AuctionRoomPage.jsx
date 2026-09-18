@@ -12,6 +12,7 @@ import { getWalletBalance } from '../services/walletService';
 import { useToast } from '../hooks/useToast';
 import { useNow } from '../hooks/useNow';
 import { useAuctionLiveUpdates, LIVE_MODE } from '../hooks/useAuctionLiveUpdates';
+import { POLLING_INTERVAL_MS } from '../config';
 import { AUCTION_STATUS, isBiddingOpen } from '../utils/auctionStatus';
 import { toTimestamp } from '../utils/dates';
 import { formatBidTime, formatCurrency, formatDateTime } from '../utils/formatters';
@@ -221,6 +222,14 @@ function AuctionRoom({ auctionId }) {
   useEffect(() => {
     if (hasExpiredLocally) refreshAuction();
   }, [hasExpiredLocally, refreshAuction]);
+  
+  const isWaitingActivation = auction?.status === AUCTION_STATUS.SCHEDULED && startTimestamp !== null && startTimestamp <= now;
+  useEffect(() => {
+    if (!isWaitingActivation) return undefined;
+
+    const intervalId = setInterval(() => { refreshAuction(); }, POLLING_INTERVAL_MS);
+    return () => clearInterval(intervalId);
+  }, [isWaitingActivation, refreshAuction]);
  
   if (loadError && !auction) {
     return (
@@ -260,9 +269,14 @@ function AuctionRoom({ auctionId }) {
   const submitBid = async (amount) => {
     if (isSubmitting || !canBid) return;
  
-    const validationError = validateBid(amount);
+  const validationError = validateBid(amount);
     setBidError(validationError);
-    if (validationError) return;
+    if (validationError) {
+      if (validationError.startsWith('Fondos insuficientes')) {
+        toast.error(validationError, 'Fondos insuficientes');
+      }
+      return;
+    }
  
     setIsSubmitting(true);
     try {
