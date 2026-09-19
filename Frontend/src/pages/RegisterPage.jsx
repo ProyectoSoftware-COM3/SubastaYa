@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -87,17 +88,39 @@ export default function RegisterPage() {
             />
             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
           </div>
-          <div>
+            <div>
             <label htmlFor="register-password" className="block text-sm text-gray-300 mb-1">Contraseña</label>
-            <input
-              id="register-password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass(Boolean(errors.password))}
-              disabled={isSubmitting}
-            />
+            <div className="relative">
+              <input
+                id="register-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${inputClass(Boolean(errors.password))} pr-11`}
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-[#d4af37] transition-colors"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
+                    <path d="M9.4 5.2A9.5 9.5 0 0112 5c5 0 9 5 9 7a11 11 0 01-2.4 3.3M6.5 6.9C4.2 8.4 3 10.7 3 12c0 2 4 7 9 7 1.3 0 2.5-.3 3.6-.8" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M3 12s4-7 9-7 9 7 9 7-4 7-9 7-9-7-9-7z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {errors.password
               ? <p className="text-red-400 text-xs mt-1">{errors.password}</p>
               : <p className="text-gray-500 text-xs mt-1">Mínimo {MIN_PASSWORD_LENGTH} caracteres.</p>}
