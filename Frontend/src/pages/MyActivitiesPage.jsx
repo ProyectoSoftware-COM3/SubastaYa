@@ -96,22 +96,40 @@ function MyAuctionsTab() {
  
   return (
     <div className="flex flex-col gap-4">
-      {items.map((auction) => (
-        <Link
-          key={auction.id}
-          to={`/auction/${auction.id}`}
-          className="bg-[#0a0a0a] border border-gray-800 p-5 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:border-gray-600 transition-colors"
-        >
-          <div>
-            <h3 className="font-bold text-lg">{auction.title}</h3>
-            <p className="text-sm text-gray-400">
-              Ofertas recibidas: <span className="text-white font-semibold">{auction.bidCount}</span>
-            </p>
-            <p className="text-xs text-gray-400 mt-1">{getAdjudication(auction)}</p>
+      {items.map((auction) => {
+        // El boton se muestra cuando la subasta aun no recibio ofertas; el backend decide si el plazo sigue vigente.
+        const canEdit = auction.bidCount === 0
+          && (auction.status === AUCTION_STATUS.SCHEDULED || auction.status === AUCTION_STATUS.ACTIVE);
+
+        return (
+          <div
+            key={auction.id}
+            className="bg-[#0a0a0a] border border-gray-800 p-5 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:border-gray-600 transition-colors"
+          >
+            <div>
+              <Link to={`/auction/${auction.id}`} className="font-bold text-lg hover:text-[#d4af37] transition-colors">
+                {auction.title}
+              </Link>
+              <p className="text-sm text-gray-400">
+                Ofertas recibidas: <span className="text-white font-semibold">{auction.bidCount}</span>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">{getAdjudication(auction)}</p>
+            </div>
+
+            <div className="flex items-center gap-3 self-start sm:self-center">
+              {canEdit && (
+                <Link
+                  to={`/auction/${auction.id}/edit`}
+                  className="px-3 py-1.5 text-xs font-bold border border-[#d4af37] text-[#d4af37] rounded hover:bg-[#d4af37] hover:text-black transition-colors"
+                >
+                  EDITAR
+                </Link>
+              )}
+              <StatusBadge status={auction.status} />
+            </div>
           </div>
-          <StatusBadge status={auction.status} className="self-start sm:self-center" />
-        </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -22,6 +22,9 @@ namespace SubastaYa.Application.UseCase.Queries.MyActivity.GetMyAuctions
             var myAuctions = await _auctionRepository.GetBySellerIdAsync(request.UserId, cancellationToken);
 
             return myAuctions
+
+                .OrderBy(a => GetStatusPriority(a.Status))
+                .ThenByDescending(a => a.StartDate)
                 .Select(a =>
                 {
                     var currentPrice = a.Bids.Count > 0 ? a.Bids.Max(b => b.Amount) : a.BasePrice;
@@ -30,6 +33,14 @@ namespace SubastaYa.Application.UseCase.Queries.MyActivity.GetMyAuctions
                 })
                 .ToList();
         }
+        private static int GetStatusPriority(AuctionStatus status) => status switch
+        {
+            AuctionStatus.Active => 0,
+            AuctionStatus.Scheduled => 1,
+            AuctionStatus.Finished => 2,
+            _ => 3
+        };
+
     }
 }
 

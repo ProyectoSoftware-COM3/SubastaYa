@@ -5,13 +5,12 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AuctionRoomPage from './pages/AuctionRoomPage';
 import WalletPage from './pages/WalletPage';
-// ===== INICIO TICKET-08: se agrega el import de MyActivitiesPage =====
 import MyActivitiesPage from './pages/MyActivitiesPage';
-// ===== FIN TICKET-08 =====
 import HowItWorksPage from './pages/HowItWorksPage';
 import ActiveAuctionsPage from './pages/ActiveAuctionsPage';
 import UpcomingAuctionsPage from './pages/UpcomingAuctionsPage';
 import CreateAuctionPage from './pages/CreateAuctionPage';
+import EditAuctionPage from './pages/EditAuctionPage';
  
 function App() {
   const { isAuthenticated } = useAuth();
@@ -69,6 +68,11 @@ function App() {
         <Route 
           path="/create-auction" 
           element={isAuthenticated ? <CreateAuctionPage /> : <Navigate to="/login" />} 
+        />
+
+        <Route 
+          path="/auction/:id/edit" 
+          element={isAuthenticated ? <EditAuctionPage /> : <Navigate to="/login" />} 
         />
  
         {/* Cualquier ruta inexistente vuelve al inicio en lugar de mostrar una pantalla en blanco. */}

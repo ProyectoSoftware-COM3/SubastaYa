@@ -8,32 +8,33 @@ using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionBids;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctionById;
 using SubastaYa.Application.UseCase.Queries.Auctions.GetAuctions;
 using SubastaYa.Domain.Enums;
+using SubastaYa.Application.UseCase.Commands.Auctions.UpdateAuction;
 
 
 namespace SubastaYa.Api.Controllers
 
 {
     [ApiController]
-        [Route("api/[controller]")]
-        public class AuctionsController : ControllerBase
+    [Route("api/[controller]")]
+    public class AuctionsController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly ICurrentUserService _currentUser;
+
+        public AuctionsController(IMediator mediator, ICurrentUserService currentUser)
         {
-            private readonly IMediator _mediator;
-            private readonly ICurrentUserService _currentUser;
-
-            public AuctionsController(IMediator mediator, ICurrentUserService currentUser)
-            {
-                _mediator = mediator;
-                _currentUser = currentUser;
-            }
+            _mediator = mediator;
+            _currentUser = currentUser;
+        }
 
 
-            [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> GetAll(
-            [FromQuery] AuctionStatus? status, [FromQuery] Guid? categoryId,
-            [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice,
-            [FromQuery] AuctionSortOrder sort = AuctionSortOrder.LeastTimeRemaining,
-            [FromQuery] int page = 1, [FromQuery] int pageSize = 12,
-            CancellationToken ct = default)
+        [FromQuery] AuctionStatus? status, [FromQuery] Guid? categoryId,
+        [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice,
+        [FromQuery] AuctionSortOrder sort = AuctionSortOrder.LeastTimeRemaining,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 12,
+        CancellationToken ct = default)
         {
             var query = new GetAuctionsQuery(status, categoryId, minPrice, maxPrice, sort, page, pageSize);
             return Ok(await _mediator.Send(query, ct));
@@ -65,6 +66,14 @@ namespace SubastaYa.Api.Controllers
         {
             var command = new PlaceBidCommand(id, _currentUser.UserId, amount);
             return StatusCode(StatusCodes.Status201Created, await _mediator.Send(command, ct));
+        }
+
+        [HttpPut("{id:guid}")]
+        [Authorize]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAuctionCommand command, CancellationToken ct)
+        {
+            await _mediator.Send(command with { AuctionId = id, SellerId = _currentUser.UserId }, ct);
+            return NoContent();
         }
 
     }

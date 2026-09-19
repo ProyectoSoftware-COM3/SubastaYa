@@ -74,6 +74,7 @@ namespace SubastaYa.Api.Middleware
             AuctionNotActiveException => (HttpStatusCode.BadRequest, ex.Message),
             InvalidBidException => (HttpStatusCode.BadRequest, ex.Message),
             InsufficientBalanceException => (HttpStatusCode.UnprocessableEntity, ex.Message),
+            AuctionNotEditableException => (HttpStatusCode.Conflict, ex.Message),
 
 
             DomainException => (HttpStatusCode.BadRequest, ex.Message),
