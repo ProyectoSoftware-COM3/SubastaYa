@@ -18,7 +18,4 @@
     <ProjectReference Include="..\SubastaYa.Application\SubastaYa.Application.csproj" />
     <ProjectReference Include="..\SubastaYa.Infrastructure\SubastaYa.Infrastructure.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
 </Project>
