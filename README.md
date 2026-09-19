@@ -1,20 +1,58 @@
 # SubastaYa
 
 Plataforma web de subastas en tiempo real desarrollada para la catedra **Proyecto de Software** (Ingenieria en Informatica, UNAJ).
+Comision 3.
 
 ## Contenido del repositorio
 
 ```
 SubastaYa/
-├── Backend/SubastaYa/          Solucion .NET 8 (API REST + SignalR)
-│   ├── SubastaYa.Api/          Controladores, middleware de errores y configuracion
-│   ├── SubastaYa.Application/  Casos de uso (CQRS con MediatR), DTOs y validadores
-│   ├── SubastaYa.Domain/       Entidades, enums y excepciones de dominio
-│   ├── SubastaYa.Infrastructure/  EF Core, repositorios, SignalR y worker
-│   ├── SubastaYa.Tests/        Tests unitarios (xUnit)
-│   └── docs/                   Decisiones de arquitectura y prueba de concurrencia
-└── Frontend/                   Aplicacion React + Vite
-```
+├── README.md
+├── .gitignore
+├── Backend/SubastaYa/                    Solucion .NET 8
+│   ├── SubastaYa.Api/                    Capa de presentacion (API REST)
+│   │   ├── Controllers/
+│   │   ├── Middleware/
+│   │   └── Properties/
+│   ├── SubastaYa.Application/            Casos de uso (CQRS con MediatR)
+│   │   ├── Common/
+│   │   │   ├── Behaviors/
+│   │   │   ├── Filters/
+│   │   │   └── Interfaces/
+│   │   ├── DTOs/
+│   │   ├── Exceptions/
+│   │   └── UseCase/
+│   │       ├── Commands/                 Operaciones de escritura
+│   │       └── Queries/                  Operaciones de lectura
+│   ├── SubastaYa.Domain/                 Nucleo del dominio, sin dependencias externas
+│   │   ├── Entities/
+│   │   ├── Enums/
+│   │   └── Exceptions/
+│   ├── SubastaYa.Infrastructure/         Acceso a datos y servicios externos
+│   │   ├── BackgroundJobs/               Worker de activacion y cierre de subastas
+│   │   ├── Migrations/                   Migraciones Code-First de EF Core
+│   │   ├── Persistence/
+│   │   │   ├── Configurations/
+│   │   │   └── Converters/
+│   │   ├── RealTime/                     Hub y notificador de SignalR
+│   │   ├── Repositories/
+│   │   └── Security/                     JWT, hashing y usuario actual
+│   ├── SubastaYa.Tests/                  Tests unitarios (xUnit)
+│   └── docs/                             Decisiones de arquitectura por funcionalidad
+│       └── concurrency/                  Script y evidencia de la prueba de concurrencia
+└── Frontend/                             Aplicacion React + Vite
+    ├── public/
+    ├── src/
+    │   ├── api/
+    │   ├── components/
+    │   │   ├── common/                   Componentes reutilizables
+    │   │   └── layout/                   Barra de navegacion
+    │   ├── context/                      Providers de sesion y notificaciones
+    │   ├── hooks/                         Logica reutilizable
+    │   ├── pages/                         Una pagina por ruta
+    │   ├── services/                      Cliente HTTP y servicios por recurso
+    │   └── utils/                         Fechas, formatos, validaciones y JWT
+    └── docs/                              Decisiones del frontend por funcionalidad
 
 ## Stack tecnologico
 
@@ -121,13 +159,14 @@ Como la subasta critica cierra 90 segundos despues del primer arranque, conviene
 
 | Metodo y ruta | Proposito |
 |---|---|
-| `POST /api/users` | Registro de usuario (201 Created) |
+| `POST /api/users` | Registro de usuario |
 | `POST /api/sessions` | Login, devuelve el token JWT |
 | `GET /api/auctions` | Listado con filtros por estado, categoria, rango de precios, orden y paginado |
-| `POST /api/auctions` | Creacion de una subasta (201 Created) |
+| `POST /api/auctions` | Creacion de una subasta |
+| `PUT /api/auctions/{id}` | Edicion de una subasta sin ofertas|
 | `GET /api/auctions/{id}` | Detalle, historial de ofertas y monto sugerido |
 | `GET /api/auctions/{id}/bids` | Historial de ofertas anonimizado |
-| `POST /api/auctions/{id}/bids` | Registro de una oferta (201 Created) |
+| `POST /api/auctions/{id}/bids` | Registro de una oferta |
 | `GET /api/categories` | Categorias disponibles |
 | `GET /api/wallet/balance` | Saldo total, retenido y disponible |
 | `POST /api/wallet/deposit` | Acreditacion de fondos simulados |
@@ -153,6 +192,8 @@ Todos los endpoints, salvo el registro y el login, requieren el token JWT en el 
 **Validaciones de puja.** No se admiten ofertas del propio vendedor, ni de quien ya es el postor lider, ni montos inferiores al minimo, ni pujas sin saldo disponible suficiente. Cada rechazo devuelve el codigo HTTP correspondiente: `400`, `409` o `422`.
 
 **Tiempo real.** La sala de subasta se sincroniza por WebSockets mediante SignalR. Si la conexion no se puede establecer o se interrumpe, el frontend pasa automaticamente a short-polling cada 3 segundos, y la propia sala indica en que modo esta operando.
+
+**Edicion de publicaciones.** El vendedor puede corregir su subasta mientras no tenga ofertas: siempre si esta programada, y hasta 5 minutos despues del inicio si ya esta activa. Se editan titulo, descripcion, imagen, categoria, precio base e incremento; las fechas no, porque cambian el ciclo de vida de la subasta y ya fueron vistas por los postores.
 
 ## Prueba de concurrencia
 
@@ -206,6 +247,10 @@ dotnet test
 
 Tambien se pueden ejecutar desde Visual Studio con **Prueba → Ejecutar todas las pruebas**. Los tests cubren los handlers y validadores de los casos de uso.
 
+## Integrantes
+
+- Micaela Bilche
+- Julieta Paz
 ## Documentacion adicional
 
 Las decisiones de arquitectura estan documentadas en `Backend/SubastaYa/docs/`.
