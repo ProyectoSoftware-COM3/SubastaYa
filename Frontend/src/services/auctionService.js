@@ -37,3 +37,9 @@ export function placeBid(auctionId, amount) {
   });
 }
 
+export function updateAuction(auctionId, auctionData) {
+  return fetchWithAuth(`/auctions/${auctionId}`, {
+    method: 'PUT',
+    body: JSON.stringify(auctionData),
+  });
+}
