@@ -1,10 +1,13 @@
-# Documentacion tecnica de SubastaYa
+# Documentacion tecnica del Backend
 
-Este directorio explica las decisiones de arquitectura tomadas durante el
-desarrollo, organizadas por el ticket que lo requiera.
+Decisiones de arquitectura e implementacion, organizadas por funcionalidad.
 
-- [TICKET-02: Decisiones sobre el Seed](./02-decisiones-seed.md)
-- [TICKET-04: Middleware y UnitOfWork](./04-decisiones-register.md)
-- [TICKET-07: Por que ICurrentUserService nace aca](./07-decisiones-currentuser.md)
-- [TICKET-12: Decisiones sobre AuditLog, transaccion y LedgerTransaction](./12-decisiones-deposit-auditlog.md)
-- [TICKET-13: Por que IBidRepository nace aca](./13-decisiones-bidrepository.md)
+- [Arquitectura general](./01-arquitectura.md)
+- [Persistencia y datos semilla](./02-persistencia-y-datos.md)
+- [Autenticacion](./03-autenticacion.md)
+- [Subastas y catalogo](./04-subastas-y-catalogo.md)
+- [Pujas, escrow y anti-sniping](./05-pujas-escrow-antisniping.md)
+- [Billetera virtual](./06-billetera.md)
+- [Worker de ciclo de vida](./07-worker.md)
+- [Concurrencia y auditoria](./08-concurrencia-y-auditoria.md)
+- [API, errores y tiempo real](./09-api-errores-tiempo-real.md)
